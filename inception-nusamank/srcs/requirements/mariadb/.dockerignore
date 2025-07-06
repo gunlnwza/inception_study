@@ -1,0 +1,16 @@
+# Ignore Docker-related files that shouldn't go into the image
+Dockerfile
+.dockerignore
+
+# Ignore shell history, swap files, and logs
+*.swp
+*.log
+*.tmp
+*.bak
+
+# Ignore environment variable files
+.env
+
+# Ignore unnecessary folders
+__pycache__/
+node_modules/

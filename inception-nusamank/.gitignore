@@ -1,0 +1,17 @@
+# Ignore Docker-related files
+*.log
+*.pid
+*.sock
+*.db
+
+# Ignore environment variables
+.env
+
+# Ignore Docker volumes and bind mounts (optional if you're not tracking volumes)
+volumes/
+**/volumes/
+**/mariadb_data/
+
+.vscode/
+
+secrets

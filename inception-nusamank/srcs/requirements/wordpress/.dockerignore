@@ -1,0 +1,30 @@
+# Ignore version control folders
+.git
+.gitignore
+
+# Ignore environment files (they may contain secrets)
+.env
+*.env
+
+# Ignore node dependencies if using Node tools
+node_modules
+
+# Ignore log files
+*.log
+
+# Ignore temporary and backup files
+*.swp
+*.tmp
+*~
+
+# Ignore Docker-specific files (if not needed in image)
+.dockerignore
+Dockerfile
+
+# Ignore OS/system files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/project settings
+.vscode/
+.idea/

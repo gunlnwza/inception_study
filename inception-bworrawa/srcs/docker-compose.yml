@@ -1,0 +1,209 @@
+# version: '3.8' no longer needs
+
+services:
+## bonus
+    static:
+        env_file:
+            - ../.env
+        container_name:
+            static
+        build:
+            context: ./requirements/bonus/static
+        image:
+            static
+        networks:
+            - wp_stack_network  
+        ports:
+            - "8081:8081" # bonus - static
+
+    portainer:
+        build: ./requirements/bonus/portainer
+        container_name: portainer
+        image:
+            portainer
+        ports:
+          - "9000:9000"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+        secrets:
+          - portainer_user
+          - portainer_password
+        restart: always
+
+    adminer:
+        env_file:
+            - ../.env
+        container_name:
+            adminer
+        build:
+            context: ./requirements/bonus/adminer
+        image:
+            adminer
+        networks:
+            - wp_stack_network  
+    ftp:
+        env_file:
+            - ../.env
+        container_name:
+            ftp
+        image:
+            ftp
+        build:
+            context: ./requirements/bonus/ftp
+        networks:
+            - wp_stack_network  
+        volumes:
+            - vol_wordpress:/home/wpuser/wp-content
+        ports:
+            - "21:21"
+            - "44444-44454:44444-44454"
+        depends_on:
+            - wordpress
+        secrets:
+            - ftp_user
+            - ftp_password
+
+    redis:
+        env_file:
+            - ../.env
+        container_name:
+            redis
+        image:
+            redis
+        ports:
+            - "6379:6379"
+        build:
+            context: ./requirements/bonus/redis
+        networks:
+            - wp_stack_network  
+        expose:
+            - "6379"
+## mandatory
+    mariadb:
+        env_file:
+            - ../.env
+        container_name:
+            mariadb
+        build:
+            context: ./requirements/mariadb
+        image:
+            mariadb
+        restart: always
+        volumes:
+            - vol_mariadb:/var/lib/mysql
+        networks:
+            - wp_stack_network
+        secrets:
+            - mariadb_root_password
+            - mariadb_wp_user
+            - mariadb_wp_password
+
+    wordpress:
+        build:        
+            context: ./requirements/wordpress
+        restart: always
+        env_file:
+            - ../.env
+        container_name:
+            wordpress
+        image:
+            wordpress
+        depends_on:
+            - mariadb
+            - redis
+        volumes:
+            - vol_wordpress:/var/www/html
+        networks:
+            - wp_stack_network
+        secrets:
+            - mariadb_wp_user
+            - mariadb_wp_password
+            - wp_admin_user
+            - wp_admin_password
+            - wp_admin_email
+            - wp_author_user
+            - wp_author_password
+            - wp_author_email
+
+    nginx:        
+        container_name:
+            nginx
+        build:
+            context: ./requirements/nginx
+        env_file:
+            - ../.env
+        image:
+            nginx
+        restart: always
+        ports:
+            - "443:443"
+            - "8080:8080" # bonus - adminer
+
+        volumes:
+            - vol_wordpress:/var/www/html
+        depends_on:
+            - wordpress
+            - adminer
+        networks:
+            - wp_stack_network
+    
+
+networks:
+    wp_stack_network:
+        driver: bridge
+        name: wp_stack_network
+        
+volumes:
+    vol_wordpress:
+        name: vol_wordpress
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/bworrawa/data/wordpress
+    vol_mariadb:
+        name: vol_mariadb
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/bworrawa/data/mariadb
+    vol_ftp:
+        name: vol_ftp
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: /home/bworrawa/data/wordpress/wp-content
+
+secrets:
+  mariadb_root_password:
+    file: ../secrets/mariadb_root_password
+  mariadb_wp_user:
+    file: ../secrets/mariadb_wp_user
+  mariadb_wp_password:
+    file: ../secrets/mariadb_wp_password
+  wp_admin_user:
+    file: ../secrets/wp_admin_user
+  wp_admin_password:
+    file: ../secrets/wp_admin_password
+  wp_admin_email:
+    file: ../secrets/wp_admin_email
+  wp_author_user:
+    file: ../secrets/wp_author_user
+  wp_author_password:
+    file: ../secrets/wp_author_password
+  wp_author_email:
+    file: ../secrets/wp_author_email
+  ftp_user:
+    file: ../secrets/ftp_user
+  ftp_password:
+    file: ../secrets/ftp_password
+  uk_user:
+    file: ../secrets/uk_user
+  uk_password:
+    file: ../secrets/uk_password
+  portainer_user:
+    file: ../secrets/portainer_user
+  portainer_password:
+    file: ../secrets/portainer_password
